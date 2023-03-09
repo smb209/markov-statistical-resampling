@@ -1,0 +1,6 @@
+*.csv
+*.png
+*.fig
+*.asv
+*.ignore
+PVArrayCalcs
