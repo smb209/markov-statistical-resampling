@@ -21,7 +21,7 @@ csv_file_path = fullfile('PVData',char(csv_file));
 %% Case 1 - Single building load
 % Load 1 Load Profiles
 caseName = 'one_load_case_no_pv';
-runId1 = 101;
+runId1 = 78;
 loadData = OneLoadCase(runId1, outdir);
 
 % Initialize the MarkovModel class and preprocess the load data into states
@@ -98,7 +98,7 @@ fignum = 902;
 
 PlotRunHistograms(fignum, origY, binEdges, newY, eta);
 
-% Resample the data set and calculate the eta overlap for 1000 runs
+%% Resample the data set and calculate the eta overlap for 1000 runs
 
 % SAVED FOR SPEED % 
 [etas, resampledDemandData] = DoRandomWalks(dd, runLength, loadData, binEdges, binWidth, 1000);
@@ -112,7 +112,7 @@ saveTikz = false;
 PlotEtas(fignum, etas, saveTikz, caseName);
 
 %% Case 3 - Two building load with PV
-% Load 2 Load Profiles
+% Load 2 Load Profiles with PV
 caseName = 'two_load_case_with_pv';
 runId1 = 101;
 runId2 = 51;
@@ -121,6 +121,7 @@ loadData = TwoLoadPvCase(runId1, runId2, outdir, GHITable);
 
 % Initialize the MarkovModel class and preprocess the load data into states
 [dd, loadData, binEdges, binWidth] = MarkovProcessData(loadData, dataColumnName);
+
 
 %% Do random walks and create plots
 [etas, resampledDemandData] = DoRandomWalks(dd, runLength, loadData, binEdges, binWidth, 1);
@@ -146,7 +147,15 @@ fignum = 902;
 
 PlotRunHistograms(fignum, origY, binEdges, newY, eta);
 
-% Resample the data set and calculate the eta overlap for 1000 runs
+% PV Data Plot
+
+fignum = 890;
+origX = loadData.datetime_utc_measured;
+origY = loadData.pv_array_output_kw;
+
+PlotPvProfile(fignum, origX, origY);
+
+%% Resample the data set and calculate the eta overlap for 1000 runs
 
 % SAVED FOR SPEED % 
 [etas, resampledDemandData] = DoRandomWalks(dd, runLength, loadData, binEdges, binWidth, 1000);
@@ -239,8 +248,6 @@ function loadData = TwoLoadPvCase(runId1, runId2, outdir, GHITable)
     GHIForLoad2 = GHIForLoad;
     GHIForLoad2.dateTimeVec = GHIForLoad2.dateTimeVec + dateDiff;
     GHIForLoad2 = retime(GHIForLoad2,loadData.datetime_utc_measured,"nearest");
-    figure(405);        
-    plot(GHIForLoad2.GHI)
     
     % Select a size of the PV array and scale the GHI data to that size using the max recorded GHI
     maxGHI = max(GHITable.GHI);
@@ -407,4 +414,19 @@ function fig_h = PlotEtas(fignum, etas, saveTikz, runName)
             'ylabel style={font=\normalsize},',...
             'ticklabel style={font=\footnotesize}']);
     end
+end
+
+%% Plot the PV profile
+function PlotPvProfile(fignum, origX, origY)
+    fig_h = figure(fignum);
+    clf
+    ax_h = subplot(1,1,1);
+    hold(ax_h,'on');
+    p1 = plot(origX,origY,'DisplayName','PV Output [kw]');
+    legend(ax_h,'show');
+    set(fig_h,'Color',[1 1 1]);
+    set(ax_h,'FontName','Latin Modern Math','FontSize',22,'LineWidth',2.0);
+    ylabel('$Load[kw]$','FontSize',18,'Interpreter','latex')
+    xlabel('$Date$','FontSize',18,'Interpreter','latex')
+    box off
 end
