@@ -220,14 +220,22 @@ classdef MarkovModel < matlab.mixin.SetGet
                     i_idx = ui_full_nd(idx);
                 end
                 
-                if isnan(i_idx); i_idx = 1; end;
+                if isnan(i_idx); i_idx = 1; end
                 
                 
                 % Extract the transition probability
-                probs = s(i_idx);
-                
-                destStates = j(i_idx);
-                
+                if (~isempty(s))
+                    probs = s(i_idx);
+                else
+                    probs = 0;
+                end
+
+                if (~isempty(j))
+                    destStates = j(i_idx);
+                else
+                    destStates = 0;
+                end
+
                 % Decode the linear state into vector components of each dimension
                 decodeState = UTIL.ind2sub_vec(obj.markovDimSizes,destStates);
                 
@@ -307,7 +315,7 @@ classdef MarkovModel < matlab.mixin.SetGet
             for sdx = 1:size(data,2)
                 
                 % Calculate statistics
-                if(isempty(p.histBins))
+                if(isempty(p.histBins) || p.histBins(sdx) == -1)
                     [tmpBinCounts, tmpEdges, tmpBins] = histcounts(data(:,sdx), 'Normalization', 'probability');
                 else
                     [tmpBinCounts, tmpEdges, tmpBins] = histcounts(data(:,sdx), p.histBins(sdx), 'Normalization', 'probability');
@@ -506,7 +514,7 @@ classdef MarkovModel < matlab.mixin.SetGet
             parser.addOptional('StartingTime',datetime('1/1/2020 12:00:00 AM','InputFormat','MM/dd/uuuu hh:mm:ss aa'));
             parser.addOptional('StepSize_min',10);
             parser.addOptional('initSample',[]);
-            parser.addParameter('initialMarkovStates',[],@(x)isnumeric(x) && x > 0);
+            parser.addParameter('initialMarkovStates',[],@(x)isnumeric(x) && all(x > 0));
             parser.parse(varargin{:});
             p = parser.Results;
             
